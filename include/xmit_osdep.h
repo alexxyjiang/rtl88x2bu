@@ -15,10 +15,9 @@
 #ifndef __XMIT_OSDEP_H_
 #define __XMIT_OSDEP_H_
 
-
 struct pkt_file {
 	_pkt *pkt;
-	SIZE_T pkt_len;	 /* the remainder length of the open_file */
+	SIZE_T pkt_len; /* the remainder length of the open_file */
 	_buffer *cur_buffer;
 	u8 *buf_start;
 	u8 *cur_addr;
@@ -36,30 +35,26 @@ struct pkt_file {
 #endif
 
 #ifdef CONFIG_GSPI_HCI
-	#define NR_XMITFRAME     64
+#define NR_XMITFRAME 64
 #else
-	#define NR_XMITFRAME     128
+#define NR_XMITFRAME 128
 #endif
 
-#define ETH_ALEN	6
+#define ETH_ALEN 6
 
-extern NDIS_STATUS rtw_xmit_entry(
-	_nic_hdl		cnxt,
-	NDIS_PACKET		*pkt,
-	u32				flags
-);
+extern NDIS_STATUS rtw_xmit_entry(_nic_hdl cnxt, NDIS_PACKET *pkt, u32 flags);
 
 #endif /* PLATFORM_WINDOWS */
 
 #ifdef PLATFORM_FREEBSD
-#define NR_XMITFRAME	256
+#define NR_XMITFRAME 256
 extern int rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev);
 extern void rtw_xmit_entry_wrap(struct ifnet *pifp);
 #endif /* PLATFORM_FREEBSD */
 
 #ifdef PLATFORM_LINUX
 
-#define NR_XMITFRAME	256
+#define NR_XMITFRAME 256
 
 struct xmit_priv;
 struct pkt_attrib;
@@ -68,14 +63,17 @@ struct xmit_frame;
 struct xmit_buf;
 
 extern int _rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev);
-extern int rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev);
+extern inline netdev_tx_t rtw_xmit_entry(struct sk_buff *pkt,
+                                         struct net_device *pnetdev);
 
 #endif /* PLATFORM_LINUX */
 
 void rtw_os_xmit_schedule(_adapter *padapter);
 
-int rtw_os_xmit_resource_alloc(_adapter *padapter, struct xmit_buf *pxmitbuf, u32 alloc_sz, u8 flag);
-void rtw_os_xmit_resource_free(_adapter *padapter, struct xmit_buf *pxmitbuf, u32 free_sz, u8 flag);
+int rtw_os_xmit_resource_alloc(_adapter *padapter, struct xmit_buf *pxmitbuf,
+                               u32 alloc_sz, u8 flag);
+void rtw_os_xmit_resource_free(_adapter *padapter, struct xmit_buf *pxmitbuf,
+                               u32 free_sz, u8 flag);
 
 extern void rtw_set_tx_chksum_offload(_pkt *pkt, struct pkt_attrib *pattrib);
 
@@ -85,7 +83,8 @@ extern uint _rtw_pktfile_read(struct pkt_file *pfile, u8 *rmem, uint rlen);
 extern sint rtw_endofpktfile(struct pkt_file *pfile);
 
 extern void rtw_os_pkt_complete(_adapter *padapter, _pkt *pkt);
-extern void rtw_os_xmit_complete(_adapter *padapter, struct xmit_frame *pxframe);
+extern void rtw_os_xmit_complete(_adapter *padapter,
+                                 struct xmit_frame *pxframe);
 
 void rtw_os_wake_queue_at_free_stainfo(_adapter *padapter, int *qcnt_freed);
 

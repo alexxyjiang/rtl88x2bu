@@ -2225,15 +2225,14 @@ unsigned int OnAuth(_adapter *padapter, union recv_frame *precv_frame)
 			if (rtw_is_list_empty(&pstat->asoc_list) == _FALSE) {
 				rtw_list_delete(&pstat->asoc_list);
 				pstapriv->asoc_list_cnt--;
-				if (pstat->expire_to > 0) {
+				if (pstat->expire_to > 0)
 					;/* TODO: STA re_auth within expire_to */
-				}
 			}
 			_exit_critical_bh(&pstapriv->asoc_list_lock, &irqL);
 
-			if (seq == 1) {
+			if (seq == 1)
 				; /* TODO: STA re_auth and auth timeout */
-			}
+
 		}
 	}
 
@@ -8995,7 +8994,7 @@ static u32 rtw_append_assoc_req_owe_ie(_adapter *adapter, u8 *pbuf)
 	if (sec == NULL)
 		goto exit;
 
-	if (sec->owe_ie && sec->owe_ie_len > 0) {
+	if (&(sec->owe_ie) != NULL && sec->owe_ie_len > 0) {
 		len = sec->owe_ie_len;
 		_rtw_memcpy(pbuf, sec->owe_ie, len);
 	}
@@ -13981,11 +13980,12 @@ u8 disconnect_hdl(_adapter *padapter, unsigned char *pbuf)
 	}
 #endif
 
+	rtw_sta_mstatus_report(padapter);
+
 	rtw_mlmeext_disconnect(padapter);
 
 	rtw_free_uc_swdec_pending_queue(padapter);
 
-	rtw_sta_mstatus_report(padapter);
 
 	return	H2C_SUCCESS;
 }
@@ -15031,7 +15031,7 @@ operation_by_state:
 
 #ifdef CONFIG_SCAN_BACKOP
 	case SCAN_BACKING_OP: {
-		u8 back_ch, back_bw, back_ch_offset;
+		u8 back_ch = 0, back_bw = 0, back_ch_offset = 0;
 		u8 need_ch_setting_union = _TRUE;
 
 #ifdef CONFIG_MCC_MODE
@@ -15966,7 +15966,8 @@ void rtw_join_done_chk_ch(_adapter *adapter, int join_res)
 
 						rtw_cfg80211_ch_switch_notify(iface
 							, mlmeext->cur_channel, mlmeext->cur_bwmode, mlmeext->cur_ch_offset
-							, ht_option, 0);
+							, ht_option
+							, 0);
 						#endif
 					}
 				}

@@ -2452,24 +2452,21 @@ static int rtw_wx_get_essid(struct net_device *dev,
 	struct	mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
 	WLAN_BSSID_EX  *pcur_bss = &pmlmepriv->cur_network.network;
 
-
-
 	if ((check_fwstate(pmlmepriv, _FW_LINKED) == _TRUE) ||
 	    (check_fwstate(pmlmepriv, WIFI_ADHOC_MASTER_STATE) == _TRUE)) {
 		len = pcur_bss->Ssid.SsidLength;
 
-		wrqu->essid.length = len;
-
 		_rtw_memcpy(extra, pcur_bss->Ssid.Ssid, len);
 
-		wrqu->essid.flags = 1;
 	} else {
-		ret = -1;
-		goto exit;
+		len = 0;
+		*extra = 0;
 	}
 
 exit:
 
+		wrqu->essid.length = len;
+		wrqu->essid.flags = 1;
 
 	return ret;
 
@@ -3202,7 +3199,7 @@ static int rtw_wx_get_nick(struct net_device *dev,
 	if (extra) {
 		wrqu->data.length = 14;
 		wrqu->data.flags = 1;
-		_rtw_memcpy(extra, "<WIFI@REALTEK>", 14);
+		_rtw_memcpy(extra, "WIFI@RTL88X2BU", 14);
 	}
 
 	/* rtw_signal_process(pid, SIGUSR1); */ /* for test */
@@ -9828,6 +9825,10 @@ static int rtw_mp_efuse_set(struct net_device *dev,
 			err = -EINVAL;
 			goto exit;
 		}
+		pHalData->current_channel = 0;
+		pHalData->current_channel_bw = CHANNEL_WIDTH_MAX;
+		pHalData->current_band_type = BAND_MAX;
+
 		_rtw_memset(extra, '\0', strlen(extra));
 		sprintf(extra, "eFuse Update OK\n");
 	} else if (strcmp(tmp[0], "analyze") == 0) {

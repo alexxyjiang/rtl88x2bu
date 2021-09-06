@@ -142,6 +142,10 @@ int rtw_check_fw_ps = 1;
 int rtw_early_mode = 1;
 #endif
 
+#ifdef CONFIG_SW_LED
+int rtw_led_ctrl = 1; // default to normal blink
+#endif
+
 int rtw_usb_rxagg_mode = 2;/* RX_AGG_DMA=1, RX_AGG_USB=2 */
 module_param(rtw_usb_rxagg_mode, int, 0644);
 
@@ -196,7 +200,7 @@ int rtw_uapsd_ac_enable = 0x0;
 	/*PHYDM API, must enable by default*/
 	int rtw_pwrtrim_enable = 1;
 #else
-	int rtw_pwrtrim_enable = 0; /* Default Enalbe  power trim by efuse config */
+	int rtw_pwrtrim_enable = 0; /* Default Enable power trim by efuse config */
 #endif
 
 #if CONFIG_TX_AC_LIFETIME
@@ -568,6 +572,12 @@ module_param(rtw_pci_aspm_enable, int, 0644);
 #ifdef CONFIG_TX_EARLY_MODE
 module_param(rtw_early_mode, int, 0644);
 #endif
+
+#ifdef CONFIG_SW_LED
+module_param(rtw_led_ctrl, int, 0644);
+MODULE_PARM_DESC(rtw_led_ctrl,"Led Control: 0=Always off, 1=Normal blink, 2=Always on");
+#endif
+
 #ifdef CONFIG_ADAPTOR_INFO_CACHING_FILE
 char *rtw_adaptor_info_caching_file_path = "/data/misc/wifi/rtw_cache";
 module_param(rtw_adaptor_info_caching_file_path, charp, 0644);
@@ -1210,6 +1220,9 @@ uint loadparam(_adapter *padapter)
 
 #ifdef CONFIG_TX_EARLY_MODE
 	registry_par->early_mode = (u8)rtw_early_mode;
+#endif
+#ifdef CONFIG_SW_LED
+	registry_par->led_ctrl = (u8)rtw_led_ctrl;
 #endif
 	registry_par->lowrate_two_xmit = (u8)rtw_lowrate_two_xmit;
 	registry_par->rf_path = (u8)rtw_rf_path; /*rf_config/rtw_rf_config*/
@@ -1916,9 +1929,10 @@ int rtw_os_ndev_register(_adapter *adapter, const char *name)
 	rtw_init_netdev_name(ndev, name);
 
 	_rtw_memcpy(ndev->dev_addr, adapter_mac_addr(adapter), ETH_ALEN);
-#if defined(CONFIG_NET_NS)
-    dev_net_set(ndev, wiphy_net(adapter_to_wiphy(adapter)));
-#endif //CONFIG_NET_NS
+
+	#ifdef CONFIG_NET_NS
+		dev_net_set(ndev, wiphy_net(adapter_to_wiphy(adapter)));
+	#endif //CONFIG_NET_NS
 
 	/* Tell the network stack we exist */
 
@@ -1961,10 +1975,6 @@ void rtw_os_ndev_unregister(_adapter *adapter)
 
 	netdev = adapter->pnetdev;
 
-#if defined(CONFIG_IOCTL_CFG80211)
-	rtw_cfg80211_ndev_res_unregister(adapter);
-#endif
-
 	if ((adapter->DriverState != DRIVER_DISAPPEAR) && netdev) {
 		struct dvobj_priv *dvobj = adapter_to_dvobj(adapter);
 		u8 rtnl_lock_needed = rtw_rtnl_lock_needed(dvobj);
@@ -1974,6 +1984,10 @@ void rtw_os_ndev_unregister(_adapter *adapter)
 		else
 			unregister_netdevice(netdev);
 	}
+
+#if defined(CONFIG_IOCTL_CFG80211)
+	rtw_cfg80211_ndev_res_unregister(adapter);
+#endif
 
 #if defined(CONFIG_IOCTL_CFG80211) && !defined(RTW_SINGLE_WIPHY)
 #ifdef CONFIG_RFKILL_POLL
@@ -2592,7 +2606,9 @@ u8 rtw_init_drv_sw(_adapter *padapter)
 		struct hal_spec_t *hal_spec = GET_HAL_SPEC(padapter);
 
 		dvobj->macid_ctl.num = rtw_min(hal_spec->macid_num, MACID_NUM_SW_LIMIT);
-
+		dvobj->macid_ctl.macid_cap = hal_spec->macid_cap;
+		dvobj->macid_ctl.macid_txrpt = hal_spec->macid_txrpt;
+		dvobj->macid_ctl.macid_txrpt_pgsz = hal_spec->macid_txrpt_pgsz;
 		dvobj->cam_ctl.sec_cap = hal_spec->sec_cap;
 		dvobj->cam_ctl.num = rtw_min(hal_spec->sec_cam_ent_num, SEC_CAM_ENT_NUM_SW_LIMIT);
 
@@ -3615,7 +3631,7 @@ int _netdev_open(struct net_device *pnetdev)
 		rtw_cfg80211_init_wiphy(padapter);
 		rtw_cfg80211_init_wdev_data(padapter);
 		#endif
-		/* rtw_netif_carrier_on(pnetdev); */ /* call this func when rtw_joinbss_event_callback return success */
+		rtw_netif_carrier_on(pnetdev); /* call this func when rtw_joinbss_event_callback return success */
 		rtw_netif_wake_queue(pnetdev);
 
 		#ifdef CONFIG_BR_EXT
@@ -3747,7 +3763,7 @@ int _netdev_open(struct net_device *pnetdev)
 	rtw_set_pwr_state_check_timer(pwrctrlpriv);
 #endif
 
-	/* rtw_netif_carrier_on(pnetdev); */ /* call this func when rtw_joinbss_event_callback return success */
+	rtw_netif_carrier_on(pnetdev); /* call this func when rtw_joinbss_event_callback return success */
 	rtw_netif_wake_queue(pnetdev);
 
 #ifdef CONFIG_BR_EXT
@@ -4253,7 +4269,9 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 	struct msghdr msg;
 	struct iovec iov;
 	struct sockaddr_nl nladdr;
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t oldfs;
+	#endif
 	char *pg;
 	int size = 0;
 
@@ -4292,18 +4310,18 @@ static int route_dump(u32 *gw_addr , int *gw_index)
 	msg.msg_controllen = 0;
 	msg.msg_flags = MSG_DONTWAIT;
 
-    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-        oldfs = get_fs();
-        set_fs(KERNEL_DS);
-    #endif
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+	oldfs = get_fs();
+	set_fs(KERNEL_DS);
+	#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 	err = sock_sendmsg(sock, &msg);
 #else
 	err = sock_sendmsg(sock, &msg, sizeof(req));
 #endif
-    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-        set_fs(oldfs);
-    #endif
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+	set_fs(oldfs);
+	#endif
 
 	if (err < 0)
 		goto out_sock;
@@ -4328,18 +4346,18 @@ restart:
 		iov_iter_init(&msg.msg_iter, READ, &iov, 1, PAGE_SIZE);
 #endif
 
-        #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-            oldfs = get_fs();
-            set_fs(KERNEL_DS);
-        #endif
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+		oldfs = get_fs();
+		set_fs(KERNEL_DS);
+		#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0))
 		err = sock_recvmsg(sock, &msg, MSG_DONTWAIT);
 #else
 		err = sock_recvmsg(sock, &msg, PAGE_SIZE, MSG_DONTWAIT);
 #endif
-        #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-            set_fs(oldfs);
-        #endif
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+		set_fs(oldfs);
+		#endif
 
 		if (err < 0)
 			goto out_sock_pg;
@@ -4410,18 +4428,18 @@ done:
 		msg.msg_controllen = 0;
 		msg.msg_flags = MSG_DONTWAIT;
 
-        #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-            oldfs = get_fs();
-            set_fs(KERNEL_DS);
-        #endif
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+		oldfs = get_fs();
+		set_fs(KERNEL_DS);
+		#endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 		err = sock_sendmsg(sock, &msg);
 #else
 		err = sock_sendmsg(sock, &msg, sizeof(req));
 #endif
-        #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-            set_fs(oldfs);
-        #endif
+		#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+		set_fs(oldfs);
+		#endif
 
 		if (err > 0)
 			goto restart;

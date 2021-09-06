@@ -1,181 +1,396 @@
-# Administrative Note
+##### [Click for USB WiFi Adapter Information for Linux](https://github.com/morrownr/USB-WiFi)
 
-As of upstream version 5.6.1, I'm moving away from individual repositories for each upstream version in favor of a single repository with version-based branches.  Hopefully, this will help with clutter and URL consistency moving forward.  The archived repositories are available here:
-* [rtl88x2BU_WiFi_linux_v5.6.1.6_35492.20191025_COEX20180928-6a6a](https://github.com/cilynx/rtl88x2bu/tree/5.6.1.6_35492.20191025_COEX20180928-6a6a)
-* [rtl88x2BU_WiFi_linux_v5.6.1_30362.20181109_COEX20180928-6a6a](https://github.com/cilynx/rtl88x2bu/tree/5.6.1_30362.20181109_COEX20180928-6a6a)
-* [rtl88x2BU_WiFi_linux_v5.3.1_27678.20180430_COEX20180427-5959](https://github.com/cilynx/rtl88x2BU_WiFi_linux_v5.3.1_27678.20180430_COEX20180427-5959)
-* [rtl88x2BU_WiFi_linux_v5.2.4.4_26334.20180126_COEX20171012-5044](https://github.com/cilynx/rtl88x2BU_WiFi_linux_v5.2.4.4_26334.20180126_COEX20171012-5044)
-* [rtl88x2BU_WiFi_linux_v5.2.4.4_25643.20171212_COEX20171012-5044](https://github.com/cilynx/rtl88x2BU_WiFi_linux_v5.2.4.4_25643.20171212_COEX20171012-5044)
-* [rtl88x2BU_WiFi_linux_v5.2.4.1_22719_COEX20170518-4444.20170613](https://github.com/cilynx/rtl88x2BU_WiFi_linux_v5.2.4.1_22719_COEX20170518-4444.20170613)
+-----
 
-# Driver for rtl88x2bu wifi adaptors
+### 88x2bu ( 88x2bu.ko ) :rocket:
 
-Updated driver for rtl88x2bu wifi adaptors based on Realtek's source distributed with myriad adapters.
+### Linux Driver for USB WiFi Adapters that are based on the RTL8812BU and RTL8822BU Chipsets
 
-Realtek's 5.6.1.6 source was found bundled with the [Cudy WU1200 AC1200 High Gain USB Wi-Fi Adapter](https://amzn.to/351ADVq) and can be downloaded from [Cudy's website](http://www.cudytech.com/wu1200_software_download).
+- v5.8.7.4 (Realtek) (2020-09-22)
+- Plus updates from the Linux community
 
-Build confirmed on:
+### Features
+
+- IEEE 802.11 b/g/n/ac WiFi compliant
+- 802.1x, WEP, WPA TKIP and WPA2 AES/Mixed mode for PSK and TLS (Radius)
+- IEEE 802.11b/g/n/ac Client mode
+  * Support wireless security for WEP, WPA TKIP and WPA2 AES PSK
+  * Support site survey scan and manual connect
+  * Support power saving mode
+- Supported interface modes:
+  * IBSS
+  * Managed
+  * AP (see *Bridged Wireless Access Point* located in the main directory of this repo)
+  * Monitor
+  * P2P-client
+  * P2P-GO
+- USB mode control
+- Log level control
+- LED control
+- Power saving control
+- VHT control (allows 80 MHz channel width in AP mode)
+- SU Beamformee and MU Beamformee control
+- SU Beamformer control
+
+A FAQ is available at the end of this document.
+
+### Compatible CPUs
+
+- x86, amd64
+- ARM, ARM64
+
+### Compatible Kernels
+
+- Kernels: 2.6.24 - 5.8 (Realtek)
+- Kernels: 5.9 - 5.13 (community support)
+
+### Tested Linux Distributions
+
+- Arch Linux (kernel 5.4)
+- Arch Linux (kernel 5.9)
+
+- Fedora (kernel 5.11)
+
+- Kali Linux (kernel 5.10)
+
+- Linux Mint 20.2 (Linux Mint based on Ubuntu) (kernel 5.4)
+- Linux Mint 20   (Linux Mint based on Ubuntu) (kernel 5.4)
+
+- LMDE 4 (Linux Mint based on Debian) (kernel 4.19)
+
+- Manjaro 20.1 (kernel 5.9)
+
+- Raspberry Pi OS (2021-01-11) (ARM 32 bit) (kernel 5.10)
+- Raspberry Pi Desktop (x86 32 bit) (kernel 4.9)
+
+- Ubuntu 21.04 (kernel 5.11)
+- Ubuntu 20.10 (kernel 5.8)
+- Ubuntu 20.04 (kernel 5.4)
+- Ubuntu 18.04 (kernel 5.4)
+
+### Download Locations for Tested Linux Distributions
+
+- [Arch Linux](https://www.archlinux.org)
+- [Fedora](https://getfedora.org)
+- [Kali Linux](https://www.kali.org/)
+- [Linux Mint](https://www.linuxmint.com)
+- [Manjaro](https://manjaro.org)
+- [Raspberry Pi OS](https://www.raspberrypi.org)
+- [Ubuntu](https://www.ubuntu.com)
+
+### Tested Hardware
+
+- [EDUP EP-AC1605GS WiFi Adapter 1300Mbps USB 3.0 High Gain Wireless Adapter](https://www.amazon.com/gp/product/B07Q56K68T)
+
+- [FIDECO 6B21-AC1200M WiFi Adapter - AC1200 Dual Band](https://www.amazon.co.uk/gp/product/B08523KPP9)
+
+- [Cudy WU1400 AC 1300Mbps USB 3.0 WiFi Adapter](https://www.amazon.com/Cudy-WU1200-AC1200Mbps-Wireless-Compatible/dp/B07Q9KY4NT)
+
+### Compatible Devices
+
+* ASUS AC1300 USB-AC55 B1
+* ASUS U2
+* Cudy WU1400
+* Dlink - DWA-181
+* Dlink - DWA-182
+* Edimax EW-7822ULC
+* Edimax EW-7822UTC
+* EDUP EP-AC1605GS
+* FIDECO 6B21-AC1200M
+* Linksys WUSB6300 V2
+* NetGear A6150
+* TP-Link Archer T3U
+* TP-Link Archer T3U Plus
+* TP-Link Archer T4U V3
+* TRENDnet TEW-808UBM
+* Numerous additional products that are based on the supported chipsets
+
+Warning: Beware of "multi-state" USB WiFi adapters. Some USB WiFi adapters have proprietary Windows drivers onboard. When plugged in, they act like a flash drive or CDROM and on Windows will attempt to start installing the Windows driver. That won't work on Linux or MAC or any other non-Windows OS so the adapter sits there in flash drive or CDROM mode. The problem is that the state of the adapter has to be changed for the adapter to show up as the device that you expect, in this case, a WiFi adapter. Most modern Linux distributions ship with a utility called "usb-modeswitch" that will handle this issue for you if it has the correct information for your adapter. It is a good utility but if you buy adapters that are "multi-state," that is one more potential headache you may have to deal with when something goes wrong. Often you can indentify adapters that are "multi-state" as they are advertised as "free driver" or "free installation driver." If you are looking to buy a USB WiFi adapter for use on Linux, MAC OS, *NIX or anything besides Windows, it is a good idea to seek out single-state adapters.
+
+Note: Some adapter makers change the chipsets in their products while keeping the same model number so please check to confirm that the product you plan to buy has the chipset you are expecting.
+
+### Installation Information
+
+The installation instructions are for the novice user. Experienced users are welcome to alter the installation to meet their needs.
+
+Temporary internet access is required for installation. There are numerous ways to enable temporary internet access depending on your hardware and situation. [One method is to use tethering from a phone.](https://www.makeuseof.com/tag/how-to-tether-your-smartphone-in-linux). Another method to enable temporary internet access is to keep a [wifi adapter that uses an in-kernel driver](https://github.com/morrownr/USB-WiFi) in your toolkit.
+
+You will need to use the terminal interface. The quick way to open a terminal: Ctrl+Alt+T (hold down on the Ctrl and Alt keys then press the T key)
+
+DKMS is used for the installation. DKMS is a system utility which will automatically recompile and install this driver when a new kernel is installed. DKMS is provided by and maintained by Dell.
+
+It is recommended that you do not delete the driver directory after installation as the directory contains information and scripts that you may need in the future.
+
+There is no need to disable Secure Mode to install this driver. If Secure Mode is properly setup on your system, this installation will support it.
+
+### Installation Steps
+
+Step 1: Open a terminal (Ctrl+Alt+T)
+
+Step 2: Update the system (select the option for the OS you are using)
+```
+    Option for Debian based distributions such as Ubuntu, Linux Mint, Kali and the Raspberry Pi OS
+
+    $ sudo apt update
+```
+```
+    Option for Arch based distributions such as Manjaro
+
+    $ sudo pacman -Syu
+```
+```
+    Option for Fedora based distributions
+
+    # sudo dnf -y update
+```
+Step 3: Install the required packages (select the option for the OS you are using)
+```
+    Option for Raspberry Pi OS
+
+    $ sudo apt install -y raspberrypi-kernel-headers bc build-essential dkms git
+```
+```
+    Option for Debian, Kali or Linux Mint Debian Edition (LMDE)
+
+    $ sudo apt install -y linux-headers-$(uname -r) build-essential dkms git libelf-dev
+```
+```
+    Option for Ubuntu (all flavors) or Linux Mint
+
+    $ sudo apt install -y dkms git build-essential
+```
+```
+    Options for Arch or Manjaro
+
+    if using pacman
+
+    $ sudo pacman -S --noconfirm linux-headers dkms git
+
+    Note: If you are asked to choose a provider, make sure to choose the one that
+    corresponds to your version of the linux kernel (for example, "linux510-headers"
+    for Linux kernel version 5.10) if you install the incorrect version, you'll have
+    to uninstall it and reinstall the correct version.
+
+    if using other methods, please follow the instructions provided by those methods
 
 ```
-Linux version 5.4.0-4-amd64 (debian-kernel@lists.debian.org) (gcc version 9.2.1 20200203 (Debian 9.2.1-28)) #1 SMP Debian 5.4.19-1 (2020-02-13)
+
 ```
+    Option for Fedora
 
-## Using and Installing the Driver
-
-### Simple Usage
-
-In order to make direct use of the driver it should suffice to build the driver
-with `make` and to load it with `insmod 88x2bu.ko`. This will allow you
-to use the driver directly without changing your system persistently.
-
-It might happen that your system freezes instantaneously. Ensure to not loose
-important work by saving and such beforehand.
-
-### DKMS installation
-
-If you want to have the driver available at startup, it will be convenient to
-register it in DKMS. An executable explanation of how to do so can be found in
-the script `deploy.sh`. Since registering a kernel module in DKMS is a major
-intervention, only execute it if you understand what the script does.
-
-### Known Problems
-
-Some users reported problems due to `Unknown symbol in module`. This can be
-caused by old deployments of the driver still being present in the systems
-directories. One solution reported was to forcefully remove all old driver
-modules:
-
-    sudo dkms remove rtl88x2bu/5.8.7.4 --all
-    find /lib/modules -name cfg80211.ko -ls
-    sudo rm -f /lib/modules/*/updates/net/wireless/cfg80211.ko
-    
-    
-This can also be caused by cfg80211 module not being present in the kernel.
-You can remedy this by running:
-
-    sudo modprobe cfg80211
-
-
-## Raspberry Pi Access Point
+    # sudo dnf -y install git dkms kernel-devel kernel-debug-devel
+```
+Step 4: Create a directory to hold the downloaded driver
 
 ```bash
-# Update all packages per normal
-sudo apt update
-sudo apt upgrade
+$ mkdir ~/src
+```
+Step 5: Move to the newly created directory
+```bash
+$ cd ~/src
+```
+Step 6: Download the driver
+```bash
+$ git clone https://github.com/morrownr/88x2bu.git
+```
+Step 7: Move to the newly created driver directory
+```bash
+$ cd ~/src/88x2bu
+```
+Step 8: Warning: this step only applies if you are installing to Raspberry Pi *hardware*.
 
-# Install prereqs
-sudo apt install git dnsmasq hostapd bc build-essential dkms raspberrypi-kernel-headers
+Run a preparation script
+```
+    Option for 32 bit operating systems to be installed to Raspberry Pi hardware
 
-# Reboot just in case there were any kernel updates
-sudo reboot
+    $ ./raspi32.sh
+```
+```
+    Option for 64 bit operating systems to be installed to Raspberry Pi hardware
 
-# Pull down the driver source
-git clone https://github.com/cilynx/rtl88x2bu
-cd rtl88x2bu/
+    $ ./raspi64.sh
 
-# Configure for RasPi
-sed -i 's/I386_PC = y/I386_PC = n/' Makefile
-sed -i 's/ARM_RPI = n/ARM_RPI = y/' Makefile
-
-# DKMS as above
-VER=$(sed -n 's/\PACKAGE_VERSION="\(.*\)"/\1/p' dkms.conf)
-sudo rsync -rvhP ./ /usr/src/rtl88x2bu-${VER}
-sudo dkms add -m rtl88x2bu -v ${VER}
-sudo dkms build -m rtl88x2bu -v ${VER} # Takes ~3-minutes on a 3B+
-sudo dkms install -m rtl88x2bu -v ${VER}
-
-# Plug in your adapter then confirm your new interface name
-ip addr
-
-# Set a static IP for the new interface (adjust if you have a different interface name or preferred IP)
-sudo tee -a /etc/dhcpcd.conf <<EOF
-interface wlan1
-    static ip_address=192.168.4.1/24
-    nohook wpa_supplicant
-EOF
-
-# Clobber the default dnsmasq config
-sudo tee /etc/dnsmasq.conf <<EOF
-interface=wlan1
-  dhcp-range=192.168.4.100,192.168.4.199,255.255.255.0,24h
-EOF
-
-# Configure hostapd
-sudo tee /etc/hostapd/hostapd.conf <<EOF
-interface=wlan1
-driver=nl80211
-ssid=pinet
-hw_mode=g
-channel=7
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=CorrectHorseBatteryStaple
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-EOF
-
-sudo sed -i 's|#DAEMON_CONF=""|DAEMON_CONF="/etc/hostapd/hostapd.conf"|' /etc/default/hostapd
-
-# Enable hostapd
-sudo systemctl unmask hostapd
-sudo systemctl enable hostapd
-
-# Reboot to pick up the config changes
-sudo reboot
+    Note: I will only address issues having to do with the 64 bit version of the
+    Raspberry Pi OS once it is out of beta and is released as generally available.
+```
+Step 9: Run the installation script (For automated builds, use _NoPrompt_ as an option)
+```bash
+$ sudo ./install-driver.sh [NoPrompt]
+```
+Step 10: Reboot
+```bash
+$ sudo reboot
 ```
 
-If you want 802.11an speeds 144Mbps you could use this config below:
+### Driver Options
+
+A file called `88x2bu.conf` will be installed in `/etc/modeprob.d` by default.
+
+`/etc/modprobe.d/88x2bu.conf`
+
+This file will be read and applied to the driver on each system boot.
+
+To edit the driver options file, run the `edit-options.sh` script.
+```bash
+$ sudo ./edit-options.sh
 ```
-# Configure hostapd
-sudo tee /etc/hostapd/hostapd.conf <<EOF
-interface=wlx74ee2ae24062
-driver=nl80211
-ssid=borg
+Documentation for Driver Options is included in the file `88x2bu.conf`.
 
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=toe54321
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
+### Removal of the Driver
 
-hw_mode=a
-channel=36
-wmm_enabled=1
+Note: This script should be used in the following situations:
 
-country_code=US
+- the driver is no longer needed
+- a fresh start with default settings is needed
+- a new version of the driver needs to be installed
+- a major operating system upgrade is going to be applied
 
-require_ht=1
-ieee80211ac=1
-require_vht=1
+Note: This script removes everything that has been installed, with the exception
+of the packages installed in Step 3 and the driver directory. The driver directory
+can and probably should be deleted in most cases after running the script.
 
-#This below is supposed to get us 867Mbps and works on rtl8814au doesn't work on this driver yet
-#vht_oper_chwidth=1
-#vht_oper_centr_freq_seg0_idx=157
+Step 1: Open a terminal (Ctrl+Alt+T)
 
-ieee80211n=1
-ieee80211ac=1
-EOF
-
-$ iwconfig
-wlx74ee2ae24062  IEEE 802.11an  ESSID:"borg"  Nickname:"<WIFI@REALTEK>"
-          Mode:Master  Frequency:5.18 GHz  Access Point: 74:EE:2A:E2:40:62
-          Bit Rate:144.4 Mb/s   Sensitivity:0/0
-          Retry:off   RTS thr:off   Fragment thr:off
-          Power Management:off
-          Link Quality=0/100  Signal level=-100 dBm  Noise level=0 dBm
-          Rx invalid nwid:0  Rx invalid crypt:0  Rx invalid frag:0
-          Tx excessive retries:0  Invalid misc:0   Missed beacon:0
-
+Step 2: Move to the driver directory
+```bash
+$ cd ~/src/88x2bu
 ```
-If you want to setup
-[masquerading](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-routed.md)
-or
-[bridging](https://www.raspberrypi.org/documentation/configuration/wireless/access-point-bridged.md),
-check out the official Raspberry Pi docs.
+Step 3: Run the removal script
+```bash
+$ sudo ./remove-driver.sh
+```
+Step 4: Reboot
+```bash
+$ sudo reboot
+```
+### Recommended WiFi Router/ Access Point Settings
+
+Note: These are general recommendations, some of which may not apply to your specific situation.
+
+Security: Set WPA2-AES. Do not set WPA2 mixed mode or WPA or TKIP.
+
+Channel width for 2.4G: Set 20 MHz fixed width. Do not use 40 MHz or 20/40 automatic.
+
+Channels for 2.4G: Set channel 1 or 6 or 11 depending on the congestion at your location. Do not set automatic channel selection.
+
+Mode for 2.4G: For best performance, set "N only" if you no longer use B or G capable devices.
+
+Network names: Do not set the 2.4G Network and the 5G Network to the same name. Note: Unfortunately many routers come with both networks set to the same name.
+
+Channels for 5G: Not all devices are capable of using DFS channels. It may be necessary to set a fixed channel in the range of 36 to 48 or 149 to 161 in order for all of your devices to work on 5g. (for US, other countries may vary)
+
+Best location for the wifi router/ access point: Near center of apartment or house, at least a couple of feet away from walls, in an elevated location.
+
+Check congestion: There are apps available for smart phones that allow you to check the congestion levels on wifi channels. The apps generally go by the name of WiFi Analyzer or something similar.
+
+After making and saving changes, reboot the router.
+
+
+### Set regulatory domain to correct setting in OS
+
+Check the current setting
+```bash
+$ sudo iw reg get
+```
+
+If you get 00, that is the default and may not provide optimal performance.
+
+Find the correct setting here: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+
+Set it temporarily
+```bash
+$ sudo iw reg set US
+```
+Note: Substitute your country code if you are not in the United States.
+
+Set it permanently
+```bash
+$ sudo nano /etc/default/crda
+
+Change the last line to read:
+
+REGDOMAIN=US
+```
+
+### Recommendations regarding USB
+
+- Moving your USB WiFi adapter to a different USB port has been known to fix a variety of problems. Problems include WiFi going on and off as well as connections coming and going.
+
+- If connecting your USB WiFi adapter to a desktop computer, use the USB ports on the rear of the computer. Why? The ports on the rear are directly connected to the motherboard which will reduce problems with interference and disconnection that can happen with front ports that use cables.
+
+- If your USB WiFi adapter is USB 3 capable then plug it into a USB 3 port.
+
+- Avoid USB 3.1 Gen 2 ports if possible as almost all currently available adapters have been tested with USB 3.1 Gen 1 (aka USB 3) and not with USB 3.1 Gen 2.
+
+- If you use an extension cable and your adapter is USB 3 capable, the cable needs to be USB 3 capable.
+
+- Some USB WiFi adapters require considerable electrical current and push the capabilities of the power available via USB port. One example is devices that use the Realtek 8814au chipset. Using a powered multiport USB extension can be a good idea in cases like this.
+
+
+### How to disable onboard WiFi on Raspberry Pi 3B, 3B+, 3A+, 4B and Zero W.
+
+Add the following line to /boot/config.txt
+```
+dtoverlay=disable-wifi
+```
+
+### How to forget a saved WiFi network on a Raspberry Pi
+
+1. Edit wpa_supplicant.conf
+```bash
+$ sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+```
+2. Delete the relevant WiFi network block (including the 'network=' and opening/closing braces.
+
+3. Press ctrl-x followed by 'y' and enter to save the file.
+
+4. Reboot
+
+-----
+
+### FAQ:
+
+Question: Does WPA3 work with this driver?
+
+Answer: No, WPA3 does not work with this driver. If you need an AC class adapter
+that does support WPA3, I suggest an Alfa AWUS036ACM (mt7612u chipset) but there
+are other adapters based on the mt7612u chipset available at various price points.
+Be aware that WPA3 support is not fully in place in all Linux distros currently.
+More than driver support is required for WPA3 support. You can get more information
+and links at the following site:
+
+https://github.com/morrownr/USB-WiFi
+
+
+Question: What interface combinations does this driver support?
+
+Answer: None. Realtek out-of-kernel drivers, including this driver, do not
+support interface combinations. If you need support for interface combinations,
+I suggest adapters based on the Mediatek chipsets. You can get more information
+and links at the following site:
+
+https://github.com/morrownr/USB-WiFi
+
+
+Question: What extended features does this driver support?
+
+Answer: None. For extended features, you need an adapter that uses Mediatek or
+Atheros drivers. You can get more information and links at the following site:
+
+https://github.com/morrownr/USB-WiFi
+
+
+Question: I bought two rtl88x2bu adapters and am planning to run one of them as an AP and another as a WiFi client. How do I set that up?
+
+Answer: You can't. Realtek drivers do not support more than one adapter with the same chipset in the same computer. However, testing has shown that the Mediatek drivers do support more than one adapter with the same chipset in the same computer. I recommend adapters with the mt7612u chipset if you are looking for AC 1200+ adapters. You can get more information and links at the following site:
+
+https://github.com/morrownr/USB-WiFi
+
+
+Question: Why do you recommend Mediatek based adapters when you maintain this repo for a Realtek driver?
+
+Answer: Many Linux users already have adapters based on Realtek chipsets. This repo is for Linux users to support their existing adapters but my STRONG recommendation is for Linux users to seek out WiFi solutions based on Mediatek, Intel or Atheros chipsets and drivers. If users are looking at a USB solution, Mediatek and Atheros based adapters are the best solution. If users want a PCIe, mPCIe, SDIO or other implementation then Intel, Mediatek or Atheros are good solutions. Realtek based USB adapters are not a good solution because Realtek does not follow Linux Wireless standards for USB WiFi adapters. Realtek drivers are problematic in many ways. You have been WARNED. For information about usb wifi adapters:
+
+https://github.com/morrownr/USB-WiFi
+
+-----

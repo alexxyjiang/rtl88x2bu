@@ -1,15 +1,22 @@
 EXTRA_CFLAGS += $(USER_EXTRA_CFLAGS)
-EXTRA_CFLAGS += -O2
-EXTRA_CFLAGS += -Wall
-EXTRA_CFLAGS += -Wextra
+EXTRA_CFLAGS += -O1
+#EXTRA_CFLAGS += -O3
+#EXTRA_CFLAGS += -Wall
+#EXTRA_CFLAGS += -Wextra
+EXTRA_CFLAGS += -Wno-error
 #EXTRA_CFLAGS += -pedantic
 #EXTRA_CFLAGS += -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes
 
-EXTRA_CFLAGS += -Wno-cast-function-type
-EXTRA_CFLAGS += -Wno-type-limits
-EXTRA_CFLAGS += -Wno-unused-function
-EXTRA_CFLAGS += -Wno-unused-parameter
 EXTRA_CFLAGS += -Wno-unused-variable
+#EXTRA_CFLAGS += -Wno-unused-value
+EXTRA_CFLAGS += -Wno-unused-label
+#EXTRA_CFLAGS += -Wno-unused-parameter
+EXTRA_CFLAGS += -Wno-unused-function
+#EXTRA_CFLAGS += -Wno-unused
+#EXTRA_CFLAGS += -Wno-uninitialized
+#EXTRA_CFLAGS += -Wno-vla
+#EXTRA_CFLAGS += -Wno-implicit-fallthrough
+#EXTRA_CFLAGS += -Wno-return-type
 
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
@@ -45,8 +52,11 @@ CONFIG_USB_HCI = y
 CONFIG_PCI_HCI = n
 CONFIG_SDIO_HCI = n
 CONFIG_GSPI_HCI = n
+#########################    LED    ###########################
+CONFIG_LED_CONTROL = y
+CONFIG_LED_ENABLE = y
 ########################## Features ###########################
-CONFIG_NET_NS=y
+CONFIG_NET_NS = y
 CONFIG_MP_INCLUDED = y
 CONFIG_POWER_SAVING = y
 CONFIG_IPS_MODE = default
@@ -72,7 +82,7 @@ CONFIG_80211W = y
 CONFIG_REDUCE_TX_CPU_LOADING = n
 CONFIG_BR_EXT = y
 CONFIG_TDLS = n
-CONFIG_WIFI_MONITOR = n
+CONFIG_WIFI_MONITOR = y
 CONFIG_MCC_MODE = n
 CONFIG_APPEND_VENDOR_IE_ENABLE = n
 CONFIG_RTW_NAPI = y
@@ -87,6 +97,8 @@ CONFIG_IP_R_MONITOR = n #arp VOQ and high rate
 CONFIG_RTW_UP_MAPPING_RULE = tos
 # enable VHT rate on 2.4G channel or not
 CONFIG_RTW_VHT_2G4 = y
+# necessary for WPA3 support
+CONFIG_GTK_OL = y
 
 ########################## Debug ###########################
 CONFIG_RTW_DEBUG = n
@@ -95,7 +107,8 @@ CONFIG_RTW_DEBUG = n
 CONFIG_RTW_LOG_LEVEL = 2
 
 # enable /proc/net/rtlxxxx/ debug interfaces
-CONFIG_PROC_DEBUG = y
+CONFIG_PROC_DEBUG = n
+CONFIG_DISABLE_PHYDM_DEBUG_FUNCTION = y
 
 ######################## Wake On Lan ##########################
 CONFIG_WOWLAN = n
@@ -120,6 +133,8 @@ CONFIG_RTW_SDIO_PM_KEEP_POWER = y
 CONFIG_MP_VHT_HW_TX_MODE = n
 ###################### Platform Related #######################
 CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_ARM_RPI = n
+CONFIG_PLATFORM_ARM64_RPI = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
 CONFIG_PLATFORM_JB_X86 = n
@@ -128,13 +143,11 @@ CONFIG_PLATFORM_ARM_PXA2XX = n
 CONFIG_PLATFORM_ARM_S3C6K4 = n
 CONFIG_PLATFORM_MIPS_RMI = n
 CONFIG_PLATFORM_RTD2880B = n
-CONFIG_PLATFORM_ARM_NV_NANO = n
 CONFIG_PLATFORM_MIPS_AR9132 = n
 CONFIG_PLATFORM_RTK_DMP = n
 CONFIG_PLATFORM_MIPS_PLM = n
 CONFIG_PLATFORM_MSTAR389 = n
 CONFIG_PLATFORM_MT53XX = n
-CONFIG_PLATFORM_ARM_RPI = n
 CONFIG_PLATFORM_ARM_MX51_241H = n
 CONFIG_PLATFORM_FS_MX61 = n
 CONFIG_PLATFORM_ACTIONS_ATJ227X = n
@@ -1260,6 +1273,16 @@ EXTRA_CFLAGS += -DCONFIG_RTW_CFGVEDNOR_RSSIMONITOR
 EXTRA_CFLAGS += -DCONFIG_RTW_CFGVENDOR_WIFI_LOGGER
 endif
 
+ifeq ($(CONFIG_LED_CONTROL), y)
+EXTRA_CFLAGS += -DCONFIG_LED_CONTROL
+ifeq ($(CONFIG_RTL8822B), y)
+EXTRA_CFLAGS += -DCONFIG_SW_LED -DCONFIG_RTW_SW_LED
+endif
+ifeq ($(CONFIG_LED_ENABLE), y)
+EXTRA_CFLAGS += -DCONFIG_LED_ENABLE
+endif
+endif
+
 ifeq ($(CONFIG_MP_VHT_HW_TX_MODE), y)
 EXTRA_CFLAGS += -DCONFIG_MP_VHT_HW_TX_MODE
 ifeq ($(CONFIG_PLATFORM_I386_PC), y)
@@ -1290,6 +1313,10 @@ else
 EXTRA_CFLAGS += -DCONFIG_RTW_UP_MAPPING_RULE=0
 endif
 
+ifeq ($(CONFIG_DISABLE_PHYDM_DEBUG_FUNCTION), y)
+EXTRA_CFLAGS += -DCONFIG_DISABLE_PHYDM_DEBUG_FUNCTION
+endif
+
 EXTRA_CFLAGS += -DDM_ODM_SUPPORT_TYPE=0x04
 
 ifeq ($(CONFIG_RTW_VHT_2G4), y)
@@ -1298,34 +1325,52 @@ else
 EXTRA_CFLAGS += -DRTW_VHT_2G4=0
 endif
 
-ifeq (y, $(filter y, $(CONFIG_PLATFORM_I386_PC) $(CONFIG_PLATFORM_ARM_NV_NANO) $(CONFIG_PLATFORM_ARM_RPI)))
+# necessary for WPA3 support
+ifeq ($(CONFIG_GTK_OL), y)
+EXTRA_CFLAGS += -DCONFIG_GTK_OL
+endif
+
+ifeq ($(CONFIG_PLATFORM_I386_PC), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
 EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
-ifeq ($(CONFIG_PLATFORM_I386_PC), y)
-	ARCH := $(shell uname -m | sed -e s/i.86/i386/)
-else
-	_WARNING := $(warning ARM_RPI or ARM_NV_NANO requested. Must disable -Werror.)
-	EXTRA_CFLAGS += -Wno-error
-	ifeq ($(CONFIG_PLATFORM_ARM_RPI), y)
-		ARCH := arm
-	else
-		ARCH := arm64
-	endif
-endif
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
+ARCH ?= $(SUBARCH)
 CROSS_COMPILE ?=
-KVER  ?= $(shell uname -r)
-ifeq ($(KBASE),)
-	KBASE = /lib/modules/$(KVER)
-	KSRC = $(KBASE)/build
-	MODDESTDIR = $(KBASE)/kernel/drivers/net/wireless/
-	STAGINGMODDIR = $(KBASE)/kernel/drivers/staging
-else
-	KSRC = $(KBASE)
-	MODDESTDIR = $(KBASE)/drivers/net/wireless/
-	STAGINGMODDIR = $(KBASE)/drivers/staging
+KVER  := $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+STAGINGMODDIR := /lib/modules/$(KVER)/kernel/drivers/staging
 endif
+
+### START RASPBERRY PI OS SUPPORT
+
+ifeq ($(CONFIG_PLATFORM_ARM_RPI), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DPLATFORM_LINUX
+ARCH ?= arm
+CROSS_COMPILE ?=
+KVER ?= $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 INSTALL_PREFIX :=
 endif
+
+ifeq ($(CONFIG_PLATFORM_ARM64_RPI), y)
+EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
+EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
+EXTRA_CFLAGS += -DPLATFORM_LINUX
+EXTRA_CFLAGS += -fno-stack-protector
+ARCH ?= arm64
+CROSS_COMPILE ?=
+KVER ?= $(shell uname -r)
+KSRC := /lib/modules/$(KVER)/build
+MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/
+INSTALL_PREFIX :=
+endif
+
+### END RASPBERRY PI OS SUPPORT
 
 ifeq ($(CONFIG_PLATFORM_NV_TK1), y)
 EXTRA_CFLAGS += -DCONFIG_PLATFORM_NV_TK1
@@ -1452,7 +1497,7 @@ endif
 
 ifeq ($(CONFIG_PLATFORM_ANDROID_X86), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
-SUBARCH := $(shell uname -m | sed -e s/i.86/i386/)
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
 ARCH := $(SUBARCH)
 CROSS_COMPILE := /media/DATA-2/android-x86/ics-x86_20120130/prebuilt/linux-x86/toolchain/i686-unknown-linux-gnu-4.2.1/bin/i686-unknown-linux-gnu-
 KSRC := /media/DATA-2/android-x86/ics-x86_20120130/out/target/product/generic_x86/obj/kernel
@@ -1475,7 +1520,7 @@ ifeq ($(CONFIG_PLATFORM_JB_X86), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
 EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
 EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT
-SUBARCH := $(shell uname -m | sed -e s/i.86/i386/)
+SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
 ARCH := $(SUBARCH)
 CROSS_COMPILE := /home/android_sdk/android-x86_JB/prebuilts/gcc/linux-x86/x86/i686-linux-android-4.7/bin/i686-linux-android-
 KSRC := /home/android_sdk/android-x86_JB/out/target/product/x86/obj/kernel/
@@ -2459,4 +2504,3 @@ clean:
 	rm -fr *.mod.c *.mod *.o .*.cmd *.ko *~
 	rm -fr .tmp_versions *.ur-safe
 endif
-

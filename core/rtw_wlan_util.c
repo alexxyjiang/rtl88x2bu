@@ -2282,7 +2282,9 @@ u8 support_rate_ranges[] = {
 	IEEE80211_OFDM_RATE_9MB,
 	IEEE80211_OFDM_RATE_12MB,
 	IEEE80211_OFDM_RATE_18MB,
+	IEEE80211_PBCC_RATE_22MB,
 	IEEE80211_OFDM_RATE_24MB,
+	IEEE80211_PBCC_RATE_33MB,
 	IEEE80211_OFDM_RATE_36MB,
 	IEEE80211_OFDM_RATE_48MB,
 	IEEE80211_OFDM_RATE_54MB,
@@ -3664,6 +3666,16 @@ void beacon_timing_control(_adapter *padapter)
 	rtw_hal_bcn_related_reg_setting(padapter);
 }
 
+inline bool _rtw_macid_ctl_chk_cap(_adapter *adapter, u8 cap)
+{
+	struct dvobj_priv *dvobj = adapter_to_dvobj(adapter);
+	struct macid_ctl_t *macid_ctl = &dvobj->macid_ctl;
+
+	if (macid_ctl->macid_cap & cap)
+		return _TRUE;
+	return _FALSE;
+}
+
 void dump_macid_map(void *sel, struct macid_bmp *map, u8 max_num)
 {
 	RTW_PRINT_SEL(sel, "0x%08x\n", map->m0);
@@ -4127,6 +4139,11 @@ inline void rtw_macid_ctl_init_sleep_reg(struct macid_ctl_t *macid_ctl, u16 reg_
 	macid_ctl->reg_sleep_ctrl = reg_ctrl;
 	macid_ctl->reg_sleep_info = reg_info;
 }
+inline void rtw_macid_ctl_init_drop_reg(struct macid_ctl_t *macid_ctl, u16 reg_ctrl, u16 reg_info)
+{
+	macid_ctl->reg_drop_ctrl = reg_ctrl;
+	macid_ctl->reg_drop_info = reg_info;
+}
 #else
 inline void rtw_macid_ctl_init_sleep_reg(struct macid_ctl_t *macid_ctl, u16 m0, u16 m1, u16 m2, u16 m3)
 {
@@ -4139,6 +4156,19 @@ inline void rtw_macid_ctl_init_sleep_reg(struct macid_ctl_t *macid_ctl, u16 m0, 
 #endif
 #if (MACID_NUM_SW_LIMIT > 96)
 	macid_ctl->reg_sleep_m3 = m3;
+#endif
+}
+inline void rtw_macid_ctl_init_drop_reg(struct macid_ctl_t *macid_ctl, u16 m0, u16 m1, u16 m2, u16 m3)
+{
+	macid_ctl->reg_drop_m0 = m0;
+#if (MACID_NUM_SW_LIMIT > 32)
+	macid_ctl->reg_drop_m1 = m1;
+#endif
+#if (MACID_NUM_SW_LIMIT > 64)
+	macid_ctl->reg_drop_m2 = m2;
+#endif
+#if (MACID_NUM_SW_LIMIT > 96)
+	macid_ctl->reg_drop_m3 = m3;
 #endif
 }
 #endif
@@ -4797,7 +4827,9 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 
 	int i = 0;
 	struct file *fp;
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
 	mm_segment_t fs;
+	#endif
 	loff_t pos = 0;
 	u8 *source = NULL;
 	long len = 0;
@@ -4834,10 +4866,10 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		return 0;
 	}
 
-    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-        fs = get_fs();
-        set_fs(KERNEL_DS);
-    #endif
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	#endif
 
 	source = rtw_zmalloc(2048);
 
@@ -4847,9 +4879,9 @@ int rtw_dev_nlo_info_set(struct pno_nlo_info *nlo_info, pno_ssid_t *ssid,
 		rtw_mfree(source, 2048);
 	}
 
-    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
-        set_fs(fs);
-    #endif
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0))
+	set_fs(fs);
+	#endif
 	filp_close(fp, NULL);
 
 	RTW_INFO("-%s-\n", __func__);

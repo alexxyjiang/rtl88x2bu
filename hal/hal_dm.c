@@ -600,7 +600,7 @@ void rtw_hal_turbo_edca(_adapter *adapter)
 		return;
 	}
 
-	if ((pregpriv->wifi_spec == 1)) { /* || (pmlmeinfo->HT_enable == 0)) */
+	if (pregpriv->wifi_spec == 1) { /* || (pmlmeinfo->HT_enable == 0)) */
 		precvpriv->is_any_non_be_pkts = _FALSE;
 		return;
 	}
@@ -1332,7 +1332,7 @@ void dump_sta_info(void *sel, struct sta_info *psta)
 			HDATA_RATE(curr_tx_rate), (curr_tx_sgi) ? "S" : "L");
 	RTW_PRINT_SEL(sel, "curr_tx_bw : %s\n", ch_width_str(ra_info->curr_tx_bw));
 	RTW_PRINT_SEL(sel, "curr_retry_ratio : %d\n", ra_info->curr_retry_ratio);
-	RTW_PRINT_SEL(sel, "ra_mask : 0x%016llx\n\n", ra_info->ramask);
+	RTW_PRINT_SEL(sel, "ra_mask : 0x%016llx\n", ra_info->ramask);
 }
 
 void rtw_phydm_ra_registed(_adapter *adapter, struct sta_info *psta)
@@ -1824,5 +1824,4 @@ void rtw_phydm_watchdog(_adapter *adapter, bool in_lps)
 
 	return;
 }
-
 
